@@ -1,9 +1,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <string>
+#include <opencv2/imgproc.hpp>
+
 using namespace std;
 using namespace cv;
 
@@ -29,17 +29,19 @@ int main()
 		cap >> frame;//等价于cap.read(frame);
 		// std::cout <<frame.size <<std::endl;
 		cv::imshow("f", frame);
+		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
 		cv::Size boardSize = cv::Size(boardWidth, boardHeight);
 		bool foundCircles = false;
 		foundCircles = cv::findChessboardCorners(frame, boardSize, circleGridCenters,
 		                                   cv::CALIB_CB_SYMMETRIC_GRID);
-		cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
+		
 		// std::cout << "foundCircles:  " << foundCircles << std::endl;
 		if (foundCircles) {
 			//提取亚像素坐标
-			
-			// cv::cornerSubPix(grayImg, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
-			//                  TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
+			// cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
+			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
+			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
+			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
 			cv::drawChessboardCorners(frame, boardSize, circleGridCenters, foundCircles);
 		}
 		cv::imshow("检测到的点", frame);
@@ -51,7 +53,7 @@ int main()
 		}
 		cv::waitKey(10);
 		if (foundCircles) {
-			if (waitKey(30) == 83) //Esc键退出，ESC的ASCLL码为27
+			if (waitKey(30) == 27) //Esc键退出，ESC的ASCLL码为27
 			{
 				count++;
 				std::cout << "count  "<<count <<std::endl;
