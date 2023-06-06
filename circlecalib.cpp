@@ -133,27 +133,27 @@ void main2()
 		cv::imshow("检测到的点", frame);
 	}
 	if(!imagePoints.empty()) {
-		cv::Mat cameraMatrix;//相机内参矩阵（最后输出用）
-		cv::Mat distortMatrix;//相机畸变矩阵（最后输出用）
-		cv::Mat rotationMatrix;//标定板到相机的旋转矩阵（最后输出用）
-		cv::Mat translationMatrix;//标定板到相机的平移矩阵(最后输出用)
-		std::vector<cv::Mat> camRVec;//每幅图像到相机的旋转矩阵
-		std::vector<cv::Mat> camTVec;//每幅图像到相机的平移矩阵
+		cv::Mat camera_matrix;//相机内参矩阵（最后输出用）
+		cv::Mat distort_matrix;//相机畸变矩阵（最后输出用）
+		cv::Mat rotation_matrix;//标定板到相机的旋转矩阵（最后输出用）
+		cv::Mat translation_matrix;//标定板到相机的平移矩阵(最后输出用)
+		std::vector<cv::Mat> cam_r_vec;//每幅图像到相机的旋转矩阵
+		std::vector<cv::Mat> cam_t_vec;//每幅图像到相机的平移矩阵
 		//求内参
 		int flags = 0;
 		flags |= cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC;
 		flags |= cv::fisheye::CALIB_CHECK_COND;
 		flags |= cv::fisheye::CALIB_FIX_SKEW;/*非常重要*/
 		cv::fisheye::calibrate(objectPoints, imagePoints, cur_photo.size(),
-		                       cameraMatrix,
-		                       distortMatrix,
-		                       camRVec, camTVec,
+		                       camera_matrix,
+		                       distort_matrix,
+		                       cam_r_vec, cam_t_vec,
 		                       flags,
 		                       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
 		                                        200, DBL_EPSILON));
 		
 		std::cout << "calibrateCamera已通过" << std::endl;
-		std::cout << "cameraMatrix:  " << cameraMatrix << std::endl;
-		std::cout << "distortMatrix:  " << distortMatrix << std::endl;
+		std::cout << "cameraMatrix:  " << camera_matrix << std::endl;
+		std::cout << "distortMatrix:  " << distort_matrix << std::endl;
 	}
 }
