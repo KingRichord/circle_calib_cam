@@ -9,11 +9,11 @@ using namespace cv;
 
 int board_width = 11;//标定板上的行数
 int board_height = 8;//标定板上的列数
-std::vector < cv::Point2d > circleGridCenters;//用于记录检测到的圆的中心点（一张图片）
+std::vector < cv::Point2d > circle_grid_centers;//用于记录检测到的圆的中心点（一张图片）
 double circle_distance = 0.003f;
 
-std::vector < std::vector <cv::Point3d> > objectPoints;//圆点中心的世界坐标,每张图片上的点构成内层vector，所有图片构成外层vector
-std::vector < std::vector <cv::Point2d> > imagePoints;//圆点中心的图像坐标,,每张图片上的点构成内层vector，所有图片构成外层vector
+std::vector < std::vector <cv::Point3d> > object_points;//圆点中心的世界坐标,每张图片上的点构成内层vector，所有图片构成外层vector
+std::vector < std::vector <cv::Point2d> > image_points;//圆点中心的图像坐标,,每张图片上的点构成内层vector，所有图片构成外层vector
 int main()
 {
 	
@@ -22,24 +22,23 @@ int main()
 	if(!cap.isOpened())
           return -1;
 	int count =0;
-	int image_count =8;
 	Mat frame;
-	while (1) {
+	while (true) {
 		cap >> frame;//等价于cap.read(frame);
 		// std::cout <<frame.size <<std::endl;
 		cv::imshow("f", frame);
 		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
 		cv::Size board_size = cv::Size(board_width, board_height);
 		bool found_circles = false;
-		found_circles = cv::findChessboardCorners(frame, board_size, circleGridCenters,
+		found_circles = cv::findChessboardCorners(frame, board_size, circle_grid_centers,
 		                                   cv::CALIB_CB_SYMMETRIC_GRID);
 		
 		// std::cout << "foundCircles:  " << foundCircles << std::endl;
 		if (found_circles) {
-			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
+			cv::cornerSubPix(frame, circle_grid_centers, cv::Size(11, 11), cv::Size(-1, -1),
 			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
 			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
-			cv::drawChessboardCorners(frame, board_size, circleGridCenters, found_circles);
+			cv::drawChessboardCorners(frame, board_size, circle_grid_centers, found_circles);
 		}
 		cv::imshow("检测到的点", frame);
 		std::vector<cv::Point3d> objs;//一张图片上的世界坐标
@@ -52,11 +51,10 @@ int main()
 		if (found_circles) {
 			if (waitKey(30) == 27) //Esc键退出，ESC的ASCLL码为27
 			{
-				count++;
-				std::cout << "count  "<<count <<std::endl;
-				imagePoints.push_back(circleGridCenters);
-				objectPoints.push_back(objs);
-				if (imagePoints.size() > 20) {
+				std::cout << "count  "<<count++ <<std::endl;
+				image_points.push_back(circle_grid_centers);
+				object_points.push_back(objs);
+				if (image_points.size() > 20) {
 					cv::Mat camera_matrix;//相机内参矩阵（最后输出用）
 					cv::Mat distort_matrix;//相机畸变矩阵（最后输出用）
 					cv::Mat rotation_matrix;//标定板到相机的旋转矩阵（最后输出用）
@@ -79,7 +77,7 @@ int main()
 					    CALIB_FIX_TAUX_TAUY 倾斜传感器模型的系数在优化过程中没有改变。 如果 设置了CALIB_USE_INTRINSIC_GUESS ，则使用提供的 distCoeffs 矩阵中的系数。 否则，它被设置为 0。
 					 * */
 					int flags = 0;
-					cv::calibrateCamera(objectPoints, imagePoints, frame.size(),
+					cv::calibrateCamera(object_points, image_points, frame.size(),
 					                    camera_matrix,
 					                    distort_matrix,
 					                    cam_r_vec, cam_t_vec,
@@ -143,22 +141,22 @@ void main2()
 		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
 		cv::Size boardSize = cv::Size(board_width, board_height);
 		bool foundCircles = false;
-		foundCircles = cv::findChessboardCorners(frame, boardSize, circleGridCenters,
+		foundCircles = cv::findChessboardCorners(frame, boardSize, circle_grid_centers,
 		                                         cv::CALIB_CB_SYMMETRIC_GRID);
 		
 		if (foundCircles) {
 			//提取亚像素坐标
 			// cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
-			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
+			cv::cornerSubPix(frame, circle_grid_centers, cv::Size(11, 11), cv::Size(-1, -1),
 			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.001));
-			imagePoints.push_back(circleGridCenters);
-			objectPoints.push_back(objs);
+			image_points.push_back(circle_grid_centers);
+			object_points.push_back(objs);
 			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
-			cv::drawChessboardCorners(frame, boardSize, circleGridCenters, foundCircles);
+			cv::drawChessboardCorners(frame, boardSize, circle_grid_centers, foundCircles);
 		}
 		cv::imshow("检测到的点", frame);
 	}
-	if(!imagePoints.empty()) {
+	if(!image_points.empty()) {
 		cv::Mat camera_matrix;//相机内参矩阵（最后输出用）
 		cv::Mat distort_matrix;//相机畸变矩阵（最后输出用）
 		cv::Mat rotation_matrix;//标定板到相机的旋转矩阵（最后输出用）
@@ -170,7 +168,7 @@ void main2()
 		flags |= cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC;
 		flags |= cv::fisheye::CALIB_CHECK_COND;
 		flags |= cv::fisheye::CALIB_FIX_SKEW;/*非常重要*/
-		cv::fisheye::calibrate(objectPoints, imagePoints, cur_photo.size(),
+		cv::fisheye::calibrate(object_points, image_points, cur_photo.size(),
 		                       camera_matrix,
 		                       distort_matrix,
 		                       cam_r_vec, cam_t_vec,
