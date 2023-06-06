@@ -90,88 +90,71 @@ int main()
 			continue;
 	}
 }
-   //  for (int i = 0; i < image_count  ; ++i) {
-   //      string path = "../" + to_string(i) + ".jpg";
-   //
-   //      colorImg = cv::imread(path, 1);
-   //      threshold(colorImg, colorImg, 50, 255, THRESH_BINARY_INV);
-   //      cv::cvtColor(colorImg, grayImg, cv::COLOR_BGR2GRAY);
-   //      bool foundCircles = false;
-   //      cv::Size boardSize = cv::Size(boardWidth, boardHeight);
-   //      foundCircles = cv::findCirclesGrid(grayImg, boardSize, circleGridCenters,
-   //                                         cv::CALIB_CB_SYMMETRIC_GRID);
-   //      std::cout << "foundCircles:  " << foundCircles << std::endl;
-	//
-	//
-   //      if (foundCircles) {
-   //          //提取亚像素坐标
-   //
-   //          // cv::cornerSubPix(grayImg, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
-   //          //                  TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
-   //          cv::drawChessboardCorners(colorImg, boardSize, circleGridCenters, foundCircles);
-   //      }
-   //      cv::imshow("检测到的点", colorImg);
-   //      cv::waitKey(0);
-   //      std::vector<cv::Point3f> objs;//一张图片上的世界坐标
-   //
-   //      for (int j = 0; j < boardHeight; j++)
-   //      {
-   //          for (int k = 0; k < boardWidth; k++)
-   //          {
-   //              objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
-   //          }
-   //      }
-   //      if (foundCircles) {
-   //          imagePoints.push_back(circleGridCenters);
-   //          objectPoints.push_back(objs);
-   //      }
-   //  }
-   //  cv::Mat cameraMatrix;//相机内参矩阵（最后输出用）
-   //  cv::Mat distortMatrix;//相机畸变矩阵（最后输出用）
-   //  cv::Mat rotationMatrix;//标定板到相机的旋转矩阵（最后输出用）
-   //  cv::Mat translationMatrix;//标定板到相机的平移矩阵(最后输出用)
-   //
-   // std::vector <cv::Mat> camRVec;//每幅图像到相机的旋转矩阵
-   //  std::vector <cv::Mat> camTVec;//每幅图像到相机的平移矩阵
-   //  //求内参
-	// int flags = 0;
-	// cv::fisheye::calibrate(objectPoints,imagePoints,colorImg.size(),
-	// 					   cameraMatrix,
-	// 					   distortMatrix,
-	// 					   camRVec,camTVec,
-	// 					   flags,
-	// 					   cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
-	// 							                        100, DBL_EPSILON));
-	//
-   //  std::cout << "calibrateCamera已通过" << std::endl;
-   //  std::cout <<"cameraMatrix:  " <<cameraMatrix<<std::endl;
-   //  std::cout <<"distortMatrix:  " <<distortMatrix<<std::endl;
-	//
-	//
-	// cv::Mat map1, map2;
-	// cv::Mat newCamMat;
-	// cv::Size img_size(640,480);
-	// cv::fisheye::estimateNewCameraMatrixForUndistortRectify(
-	// 		cameraMatrix, distortMatrix, img_size,
-	// 		cv::Matx33d::eye(), newCamMat, 1);
-	// cv::fisheye::initUndistortRectifyMap(cameraMatrix, distortMatrix,
-	//                                      cv::Matx33d::eye(), newCamMat, img_size,
-	//                                      CV_16SC2, map1, map2);
-	//
-	// std::cout <<newCamMat <<std::endl;
-	// for (int i = 0; i < image_count  ; ++i) {
-	// 	string path = "../" + to_string(i) + ".jpg";
-	//
-	// 	colorImg = cv::imread(path, 1);
-	// 	// threshold(colorImg, colorImg, 50, 255, THRESH_BINARY_INV);
-	// 	// cv::cvtColor(colorImg, grayImg, cv::COLOR_BGR2GRAY);
-	// 	cv::Mat out_put;
-   //
-	// 	cv::remap(colorImg, out_put, map1, map2, cv::INTER_LINEAR);
-	// 	// cv::fisheye::undistortImage(grayImg, out_put, cameraMatrix, distortMatrix,newCamMat);
-	//
-	// 	cv::imshow("畸变恢复", out_put);
-	// 	cv::waitKey(0);
-	// }
-   //  return 0;
-// }
+void main2()
+{
+	string path = "/home/moi/";
+	vector<String> fn;
+	glob(path, fn, false);
+	size_t count = fn.size();
+	vector<Mat> images;
+	cv::Mat cur_photo;
+	cout<<" read images ..."<<endl;
+	for (int i = 0; i < count; i++)
+	{
+		images.push_back(imread(fn[i]));
+	}
+	
+	std::vector<cv::Point3f> objs;//一张图片上的世界坐标
+	for (int j = 0; j < boardHeight; j++) {
+		for (int k = 0; k < boardWidth; k++) {
+			objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
+		}
+	}
+	
+	for (int i = 0; i < images.size(); ++i) {
+		cv::Mat frame = images[i];
+		cur_photo = frame;
+		cv::imshow("f", frame);
+		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+		cv::Size boardSize = cv::Size(boardWidth, boardHeight);
+		bool foundCircles = false;
+		foundCircles = cv::findChessboardCorners(frame, boardSize, circleGridCenters,
+		                                         cv::CALIB_CB_SYMMETRIC_GRID);
+		
+		if (foundCircles) {
+			//提取亚像素坐标
+			// cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
+			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
+			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
+			imagePoints.push_back(circleGridCenters);
+			objectPoints.push_back(objs);
+			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
+			cv::drawChessboardCorners(frame, boardSize, circleGridCenters, foundCircles);
+		}
+		cv::imshow("检测到的点", frame);
+	}
+	if(!imagePoints.empty()) {
+		cv::Mat cameraMatrix;//相机内参矩阵（最后输出用）
+		cv::Mat distortMatrix;//相机畸变矩阵（最后输出用）
+		cv::Mat rotationMatrix;//标定板到相机的旋转矩阵（最后输出用）
+		cv::Mat translationMatrix;//标定板到相机的平移矩阵(最后输出用)
+		std::vector<cv::Mat> camRVec;//每幅图像到相机的旋转矩阵
+		std::vector<cv::Mat> camTVec;//每幅图像到相机的平移矩阵
+		//求内参
+		int flags = 0;
+		flags |= cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC;
+		flags |= cv::fisheye::CALIB_CHECK_COND;
+		flags |= cv::fisheye::CALIB_FIX_SKEW;/*非常重要*/
+		cv::fisheye::calibrate(objectPoints, imagePoints, cur_photo.size(),
+		                       cameraMatrix,
+		                       distortMatrix,
+		                       camRVec, camTVec,
+		                       flags,
+		                       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
+		                                        200, DBL_EPSILON));
+		
+		std::cout << "calibrateCamera已通过" << std::endl;
+		std::cout << "cameraMatrix:  " << cameraMatrix << std::endl;
+		std::cout << "distortMatrix:  " << distortMatrix << std::endl;
+	}
+}
