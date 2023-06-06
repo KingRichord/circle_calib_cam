@@ -78,8 +78,7 @@ int main()
 					                       camRVec, camTVec,
 					                       flags,
 					                       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
-					                                        200, DBL_EPSILON));
-					
+					                                        200, 1e-6));
 					std::cout << "calibrateCamera已通过" << std::endl;
 					std::cout << "cameraMatrix:  " << cameraMatrix << std::endl;
 					std::cout << "distortMatrix:  " << distortMatrix << std::endl;
