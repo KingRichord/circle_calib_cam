@@ -37,8 +37,6 @@ int main()
 		
 		// std::cout << "foundCircles:  " << foundCircles << std::endl;
 		if (foundCircles) {
-			//提取亚像素坐标
-			// cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
 			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
 			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
 			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
@@ -68,20 +66,49 @@ int main()
 					std::vector<cv::Mat> camRVec;//每幅图像到相机的旋转矩阵
 					std::vector<cv::Mat> camTVec;//每幅图像到相机的平移矩阵
 					//求内参
+					/*
+					    CALIB_USE_INTRINSIC_GUESS cameraMatrix 包含进一步优化的 fx、fy、cx、cy 的有效初始值。 否则，(cx, cy) 最初设置为图像中心（使用 imageSize），并以最小二乘法计算焦距。 请注意，如果内部参数已知，则无需仅使用此函数来估计外部参数。 请 改用solvePnP 。
+					    CALIB_FIX_PRINCIPAL_POINT 全局优化过程中主点不变。 当CALIB_USE_INTRINSIC_GUESS 也被设置时，它停留在中心或指定的不同位置 。
+					    CALIB_FIX_ASPECT_RATIO 函数仅将 fy 视为自由参数。 fx/fy 比率与输入 cameraMatrix 中的比率相同。 当 CALIB_USE_INTRINSIC_GUESS 未设置时，fx 和 fy 的实际输入值将被忽略，仅计算并进一步使用它们的比率。
+					    CALIB_ZERO_TANGENT_DIST 切向畸变系数 ( p1 , p2 ) _ _ 被设置为零并保持零。
+					    CALIB_FIX_FOCAL_LENGTH 如果设置了 CALIB_USE_INTRINSIC_GUESS ，则焦距在全局优化期间不会改变。
+					    CALIB_FIX_K1 ,..., CALIB_FIX_K6 对应的径向畸变系数在优化过程中没有改变。 如果 设置了CALIB_USE_INTRINSIC_GUESS ，则使用提供的 distCoeffs 矩阵中的系数。 否则，它被设置为 0。
+					    CALIB_RATIONAL_MODEL 系数 k4、k5 和 k6 已启用。 为了提供向后兼容性，应明确指定此额外标志以使校准函数使用有理模型并返回 8 个或更多系数。
+					    CALIB_THIN_PRISM_MODEL 系数 s1、s2、s3 和 s4 已启用。 为了提供向后兼容性，应明确指定此额外标志以使校准函数使用薄棱镜模型并返回 12 个或更多系数。
+					    CALIB_FIX_S1_S2_S3_S4 薄棱镜畸变系数在优化过程中没有改变。 如果 设置了CALIB_USE_INTRINSIC_GUESS ，则使用提供的 distCoeffs 矩阵中的系数。 否则，它被设置为 0。
+					    CALIB_TILTED_MODEL 系数 tauX 和 tauY 已启用。 为了提供向后兼容性，应明确指定此额外标志以使校准函数使用倾斜传感器模型并返回 14 个系数。
+					    CALIB_FIX_TAUX_TAUY 倾斜传感器模型的系数在优化过程中没有改变。 如果 设置了CALIB_USE_INTRINSIC_GUESS ，则使用提供的 distCoeffs 矩阵中的系数。 否则，它被设置为 0。
+					 * */
 					int flags = 0;
-					flags |= cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC;
-					flags |= cv::fisheye::CALIB_CHECK_COND;
-					flags |= cv::fisheye::CALIB_FIX_SKEW;/*非常重要*/
-					cv::fisheye::calibrate(objectPoints, imagePoints, frame.size(),
-					                       cameraMatrix,
-					                       distortMatrix,
-					                       camRVec, camTVec,
-					                       flags,
-					                       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
-					                                        200, 1e-6));
+					cv::calibrateCamera(objectPoints, imagePoints, frame.size(),
+					                    cameraMatrix,
+					                    distortMatrix,
+					                    camRVec, camTVec,
+					                    flags,
+					                    cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
+					                                     200, DBL_EPSILON));
+					/*
+					    // fisheye：：CALIB_USE_INTRINSIC_GUESS cameraMatrix包含fx，fy，cx，cy的有效初始值，这些值将进一步优化。否则，（cx， cy） 最初设置为图像中心（使用 imageSize），并以最小二乘方式计算焦距。
+					    // fisheye：：CALIB_RECOMPUTE_EXTRINSIC 在每次内部优化迭代后，将重新计算外在优化。
+					    // fisheye：：CALIB_CHECK_COND 函数将检查条件编号的有效性。
+					    // fisheye：：CALIB_FIX_SKEW 偏斜系数 （alpha） 设置为零并保持零。
+					    // fisheye：：CALIB_FIX_K1 ,..., 鱼眼：：CALIB_FIX_K4 选定的失真系数设置为零并保持零。
+					    // fisheye：：CALIB_FIX_PRINCIPAL_POINT 在全局优化期间，主点不会改变。它也停留在中心或 设置鱼眼：：CALIB_USE_INTRINSIC_GUESS 时指定的其他位置。
+						int flags = 0;
+						flags |= cv::fisheye::CALIB_RECOMPUTE_EXTRINSIC;
+						flags |= cv::fisheye::CALIB_CHECK_COND;
+						flags |= cv::fisheye::CALIB_FIX_SKEW; //非常重要
+						cv::fisheye::calibrate(objectPoints, imagePoints, frame.size(),
+						                       cameraMatrix,
+						                       distortMatrix,
+						                       camRVec, camTVec,
+						                       flags,
+						                       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
+						                                        200, DBL_EPSILON));
+					*/
 					std::cout << "calibrateCamera已通过" << std::endl;
-					std::cout << "cameraMatrix:  " << cameraMatrix << std::endl;
-					std::cout << "distortMatrix:  " << distortMatrix << std::endl;
+					std::cout << "cameraMatrix:  " << std::endl<< cameraMatrix << std::endl;
+					std::cout << "distortMatrix:  " << std::endl<< distortMatrix << std::endl;
 					
 				}
 			}
@@ -124,7 +151,7 @@ void main2()
 			//提取亚像素坐标
 			// cv::find4QuadCornerSubpix(frame, circleGridCenters, cv::Size(5, 5));
 			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
-			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
+			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.001));
 			imagePoints.push_back(circleGridCenters);
 			objectPoints.push_back(objs);
 			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
