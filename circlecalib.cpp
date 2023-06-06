@@ -47,10 +47,9 @@ int main()
 				objs.emplace_back(k * circle_distance, j * circle_distance, 0.0);
 			}
 		}
-		cv::waitKey(10);
-		if (found_circles) {
-			if (waitKey(30) == 27) //Esc键退出，ESC的ASCLL码为27
-			{
+		if (waitKey(50) == 27) //Esc键退出，ESC的ASCLL码为27
+		{
+			if (found_circles) {
 				std::cout << "count  "<<count++ <<std::endl;
 				image_points.push_back(circle_grid_centers);
 				object_points.push_back(objs);
