@@ -7,10 +7,10 @@
 using namespace std;
 using namespace cv;
 
-int boardWidth = 11;//标定板上的行数
-int boardHeight = 8;//标定板上的列数
+int board_width = 11;//标定板上的行数
+int board_height = 8;//标定板上的列数
 std::vector < cv::Point2d > circleGridCenters;//用于记录检测到的圆的中心点（一张图片）
-double circleDistance=0.003f;
+double circle_distance = 0.003f;
 
 std::vector < std::vector <cv::Point3d> > objectPoints;//圆点中心的世界坐标,每张图片上的点构成内层vector，所有图片构成外层vector
 std::vector < std::vector <cv::Point2d> > imagePoints;//圆点中心的图像坐标,,每张图片上的点构成内层vector，所有图片构成外层vector
@@ -29,27 +29,27 @@ int main()
 		// std::cout <<frame.size <<std::endl;
 		cv::imshow("f", frame);
 		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
-		cv::Size boardSize = cv::Size(boardWidth, boardHeight);
-		bool foundCircles = false;
-		foundCircles = cv::findChessboardCorners(frame, boardSize, circleGridCenters,
+		cv::Size board_size = cv::Size(board_width, board_height);
+		bool found_circles = false;
+		found_circles = cv::findChessboardCorners(frame, board_size, circleGridCenters,
 		                                   cv::CALIB_CB_SYMMETRIC_GRID);
 		
 		// std::cout << "foundCircles:  " << foundCircles << std::endl;
-		if (foundCircles) {
+		if (found_circles) {
 			cv::cornerSubPix(frame, circleGridCenters, cv::Size(11, 11), cv::Size(-1, -1),
 			                 TermCriteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.1));
 			cv::cvtColor(frame, frame, cv::COLOR_GRAY2BGR);
-			cv::drawChessboardCorners(frame, boardSize, circleGridCenters, foundCircles);
+			cv::drawChessboardCorners(frame, board_size, circleGridCenters, found_circles);
 		}
 		cv::imshow("检测到的点", frame);
 		std::vector<cv::Point3d> objs;//一张图片上的世界坐标
-		for (int j = 0; j < boardHeight; j++) {
-			for (int k = 0; k < boardWidth; k++) {
-				objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
+		for (int j = 0; j < board_height; j++) {
+			for (int k = 0; k < board_width; k++) {
+				objs.emplace_back(k * circle_distance, j * circle_distance, 0.0);
 			}
 		}
 		cv::waitKey(10);
-		if (foundCircles) {
+		if (found_circles) {
 			if (waitKey(30) == 27) //Esc键退出，ESC的ASCLL码为27
 			{
 				count++;
@@ -130,9 +130,9 @@ void main2()
 	}
 	
 	std::vector<cv::Point3d> objs;//一张图片上的世界坐标
-	for (int j = 0; j < boardHeight; j++) {
-		for (int k = 0; k < boardWidth; k++) {
-			objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
+	for (int j = 0; j < board_height; j++) {
+		for (int k = 0; k < board_width; k++) {
+			objs.emplace_back(k * circle_distance, j * circle_distance, 0.0);
 		}
 	}
 	
@@ -141,7 +141,7 @@ void main2()
 		cur_photo = frame;
 		cv::imshow("f", frame);
 		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
-		cv::Size boardSize = cv::Size(boardWidth, boardHeight);
+		cv::Size boardSize = cv::Size(board_width, board_height);
 		bool foundCircles = false;
 		foundCircles = cv::findChessboardCorners(frame, boardSize, circleGridCenters,
 		                                         cv::CALIB_CB_SYMMETRIC_GRID);
