@@ -7,14 +7,13 @@
 using namespace std;
 using namespace cv;
 
-cv::Mat colorImg,grayImg;//用于存取原图，以及存取转化后的灰度图
 int boardWidth = 11;//标定板上的行数
 int boardHeight = 8;//标定板上的列数
-std::vector < cv::Point2f > circleGridCenters;//用于记录检测到的圆的中心点（一张图片）
+std::vector < cv::Point2d > circleGridCenters;//用于记录检测到的圆的中心点（一张图片）
 double circleDistance=0.003f;
 
-std::vector < std::vector <cv::Point3f> > objectPoints;//圆点中心的世界坐标,每张图片上的点构成内层vector，所有图片构成外层vector
-std::vector < std::vector <cv::Point2f> > imagePoints;//圆点中心的图像坐标,,每张图片上的点构成内层vector，所有图片构成外层vector
+std::vector < std::vector <cv::Point3d> > objectPoints;//圆点中心的世界坐标,每张图片上的点构成内层vector，所有图片构成外层vector
+std::vector < std::vector <cv::Point2d> > imagePoints;//圆点中心的图像坐标,,每张图片上的点构成内层vector，所有图片构成外层vector
 int main()
 {
 	
@@ -43,7 +42,7 @@ int main()
 			cv::drawChessboardCorners(frame, boardSize, circleGridCenters, foundCircles);
 		}
 		cv::imshow("检测到的点", frame);
-		std::vector<cv::Point3f> objs;//一张图片上的世界坐标
+		std::vector<cv::Point3d> objs;//一张图片上的世界坐标
 		for (int j = 0; j < boardHeight; j++) {
 			for (int k = 0; k < boardWidth; k++) {
 				objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
@@ -58,13 +57,13 @@ int main()
 				imagePoints.push_back(circleGridCenters);
 				objectPoints.push_back(objs);
 				if (imagePoints.size() > 20) {
-					cv::Mat cameraMatrix;//相机内参矩阵（最后输出用）
-					cv::Mat distortMatrix;//相机畸变矩阵（最后输出用）
-					cv::Mat rotationMatrix;//标定板到相机的旋转矩阵（最后输出用）
-					cv::Mat translationMatrix;//标定板到相机的平移矩阵(最后输出用)
+					cv::Mat camera_matrix;//相机内参矩阵（最后输出用）
+					cv::Mat distort_matrix;//相机畸变矩阵（最后输出用）
+					cv::Mat rotation_matrix;//标定板到相机的旋转矩阵（最后输出用）
+					cv::Mat translation_matrix;//标定板到相机的平移矩阵(最后输出用)
 					
-					std::vector<cv::Mat> camRVec;//每幅图像到相机的旋转矩阵
-					std::vector<cv::Mat> camTVec;//每幅图像到相机的平移矩阵
+					std::vector<cv::Mat> cam_r_vec;//每幅图像到相机的旋转矩阵
+					std::vector<cv::Mat> cam_t_vec;//每幅图像到相机的平移矩阵
 					//求内参
 					/*
 					    CALIB_USE_INTRINSIC_GUESS cameraMatrix 包含进一步优化的 fx、fy、cx、cy 的有效初始值。 否则，(cx, cy) 最初设置为图像中心（使用 imageSize），并以最小二乘法计算焦距。 请注意，如果内部参数已知，则无需仅使用此函数来估计外部参数。 请 改用solvePnP 。
@@ -81,9 +80,9 @@ int main()
 					 * */
 					int flags = 0;
 					cv::calibrateCamera(objectPoints, imagePoints, frame.size(),
-					                    cameraMatrix,
-					                    distortMatrix,
-					                    camRVec, camTVec,
+					                    camera_matrix,
+					                    distort_matrix,
+					                    cam_r_vec, cam_t_vec,
 					                    flags,
 					                    cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS),
 					                                     200, DBL_EPSILON));
@@ -107,8 +106,8 @@ int main()
 						                                        200, DBL_EPSILON));
 					*/
 					std::cout << "calibrateCamera已通过" << std::endl;
-					std::cout << "cameraMatrix:  " << std::endl<< cameraMatrix << std::endl;
-					std::cout << "distortMatrix:  " << std::endl<< distortMatrix << std::endl;
+					std::cout << "cameraMatrix:  " << std::endl<< camera_matrix << std::endl;
+					std::cout << "distortMatrix:  " << std::endl<< distort_matrix << std::endl;
 					
 				}
 			}
@@ -130,7 +129,7 @@ void main2()
 		images.push_back(imread(fn[i]));
 	}
 	
-	std::vector<cv::Point3f> objs;//一张图片上的世界坐标
+	std::vector<cv::Point3d> objs;//一张图片上的世界坐标
 	for (int j = 0; j < boardHeight; j++) {
 		for (int k = 0; k < boardWidth; k++) {
 			objs.emplace_back(k * circleDistance, j * circleDistance, 0.0);
